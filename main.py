@@ -62,7 +62,7 @@ background_two = pygame.transform.scale(background_two, (width, height))
 # Caption and Icon
 # Set the title to space invadors on the window
 pygame.display.set_caption("Space Invaders")
-icon = pygame.image.load('Sprites/ufo.png')
+icon = pygame.image.load('ufo.png')
 pygame.display.set_icon(icon)
 
 
