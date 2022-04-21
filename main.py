@@ -229,25 +229,54 @@ def game_loop(screen, buttons):
 # Title screen
 def title_screen(screen):
 
+    title =  UIPlain(
+        center_position = (400, 50),
+        font_size = 70,
+        text_rgb = WHITE,
+        text = "Space Invaders",
+    )
+
+    title_2 =  UIPlain(
+        center_position = (400, 120),
+        font_size = 70,
+        text_rgb = WHITE,
+        text = "with",
+    )
+
+    title_3 =  UIPlain(
+        center_position = (400, 200),
+        font_size = 70,
+        text_rgb = WHITE,
+        text = "Cooler Mechanics",
+    )
+
     start_btn = UIElement(
-        center_position=(400, 400),
+        center_position=(400, 500),
         font_size=30,
         text_rgb=WHITE,
         text="Start",
         action=GameState.NEWGAME,
     )
+
+    score_btn = UIElement(
+        center_position=(400, 600),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Highscores",
+        action=None,
+    )
+
     quit_btn = UIElement(
-        center_position=(400, 500),
+        center_position=(400, 700),
         font_size=30,
         text_rgb=WHITE,
         text="Quit",
         action=GameState.QUIT,
     )
 
-    buttons = RenderUpdates(start_btn, quit_btn)
+    buttons = RenderUpdates(start_btn, score_btn, quit_btn, title, title_2, title_3)
 
     return game_loop(screen, buttons)
-
 
 # Display score
 font = pygame.font.Font('freesansbold.ttf', 25)
@@ -300,7 +329,7 @@ def game_over():
         action=GameState.QUIT,
     )
 
-    playerShip.reset(width / 2, height - 100, 8, 5, 0, 500, "player.png")
+    playerShip.reset(width / 2, height - 100, 8, 5, 0, 500, "Sprites/player.png")
     player_sprite.add(playerShip)
     all_lasers.empty()
     all_enemies.empty()
