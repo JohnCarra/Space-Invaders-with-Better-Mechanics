@@ -31,28 +31,27 @@ rows = 4
 cols = 9
 cols_2 = 50
 
-# For stopping the spawning of lasers at end of level
+# For stopping the spawning of lasers at the end of level one
 stop = 0
 
 # Firerate of enemies
 enemy_cooldown = 1000 #milliseconds?
 last_enemy_shot = pygame.time.get_ticks()
 
-# Freeze screen before beginning level starts
+# Freeze screen before a level begins moving to give player time
 countdown = 3
 last_count = pygame.time.get_ticks()
 
-# How long power up lasts
+# How long the power up lasts
 power_up_time = 0
 power_cooldown = pygame.time.get_ticks()
 
-# Timer for displaying next level
+# Timer for when to change to next level when previous level is completed
 next = 10
 next_count = pygame.time.get_ticks()
 
-# Timer for when end of level for barrage
+# Timer for when end of level laser barrage
 end_timer = pygame.time.get_ticks()
-
 
 # Background image and level one image
 background = pygame.image.load('Sprites/background.png')
@@ -69,13 +68,13 @@ dead_background = pygame.transform.scale(dead_background, (width, height))
 # Caption and Icon
 # Set the title to space invadors on the window
 pygame.display.set_caption("Space Invaders")
-icon = pygame.image.load('Sprites/ufo.png')
+icon = pygame.image.load('ufo.png')
 pygame.display.set_icon(icon)
 
-# Name of player
+# Used to capture the name of player at death screen
 user_text = ''
 
-# Highscore text file
+# Highscore text file that is written to, to save highscores
 highscore_file = 'highscores.txt'
 
 
@@ -93,11 +92,6 @@ def create_surface_with_text(text, font_size, text_rgb):
 def draw_text(x, y, text, font_size, text_rgb):
     img = font.render(text, True, text_rgb)
     text_rect = img.get_rect(center = (x / 2, y))
-    screen.blit(img, text_rect)
-
-def draw_text_left(x, y, text, font_size, text_rgb):
-    img = font.render(text, True, text_rgb)
-    text_rect = img.get_rect(center = (x, y))
     screen.blit(img, text_rect)
 
 
@@ -307,11 +301,12 @@ def title_screen(screen):
     return game_loop(screen, buttons)
 
 
-# Display score
+# Fonts and font size for some displayed text
 font = pygame.font.Font('freesansbold.ttf', 25)
 font_bigger = pygame.font.Font('freesansbold.ttf', 70)
 
 
+# Displays your current score and health during the duration of the game
 def show_score():
     score = font.render("Score : " + str(playerShip.score), True, WHITE)
     screen.blit(score, (1, 775))
@@ -319,6 +314,7 @@ def show_score():
     screen.blit(health, (681, 775))
 
 
+# Dsplaying all saved highscores on highscore screen
 def highscore(file_name):
 
     scores = get_highscore(file_name)
@@ -334,21 +330,21 @@ def highscore(file_name):
         center_position = (400, 300),
         font_size = 30,
         text_rgb = WHITE,
-        text = '1st: ' + scores.get('high')[0] + '- ' + scores.get('high')[1],
+        text = '1st: ' + scores.get('high')[0] + ' - ' + scores.get('high')[1],
     )
 
     second =  UIPlain(
         center_position = (400, 350),
         font_size = 30,
         text_rgb = WHITE,
-        text = '2nd: ' + scores.get('mid')[0] + '- ' + scores.get('mid')[1],
+        text = '2nd: ' + scores.get('mid')[0] + ' - ' + scores.get('mid')[1],
     )
 
     third =  UIPlain(
         center_position = (400, 400),
         font_size = 30,
         text_rgb = WHITE,
-        text = '3rd: ' + scores.get('low')[0] + '- ' + scores.get('low')[1],
+        text = '3rd: ' + scores.get('low')[0] + ' - ' + scores.get('low')[1],
     )
 
     menu_btn = UIElement(
@@ -372,7 +368,7 @@ def get_highscore(file_name):
             text = text_file.read()
     else:
         f = open(file_name, 'w')
-        text = 'high:a:0,mid:b:0,low:c:0,lowest:d:0'
+        text = 'high:Empty:0,mid:Empty:0,low:Empty:0,lowest:Empty:0'
         f.write(text)
         f.close()
 
@@ -437,7 +433,6 @@ def set_highscore(file_name, player_name, score):
 
     write_highscore(file_name, scores)
     print(scores)
-
 
 
 def game_pause():
@@ -571,6 +566,8 @@ def second_level():
 
         screen.blit(background_two, (0,0))
 
+        draw_text(width, 400, "Buy the DLC for more content.", 50, WHITE)
+
         clock.tick(fps)
 
         global countdown
@@ -588,14 +585,14 @@ def second_level():
                 if event.key == pygame.K_ESCAPE:     #Pressing escape key will quit the game
                     running = False
 
-        if countdown == 0:
+        #if countdown == 0:
             #if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 5 and len(all_enemies) > 0:
             #    attacking_enemy = random.choice(all_enemies.sprites())
             #    enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
             #    all_enemies_lasers.add(enemy_laser)
 
 
-            game_state = playerShip.update()
+        game_state = playerShip.update()
             #all_lasers.update()
             #all_enemies.update()
             #all_enemies_lasers.update()
@@ -622,13 +619,13 @@ def second_level():
             #    if next == 0:
             #        return GameState.SECOND
 
-        if countdown > 0:
-            draw_text(width, 450, "READY!", font, WHITE)
-            draw_text(width, 490, str(countdown), font, WHITE)
-            count_timer = pygame.time.get_ticks()
-            if count_timer - last_count > 1500:
-                countdown -= 1
-                last_count = count_timer
+        #if countdown > 0:
+        #    draw_text(width, 450, "READY!", font, WHITE)
+        #    draw_text(width, 490, str(countdown), font, WHITE)
+        #    count_timer = pygame.time.get_ticks()
+        #    if count_timer - last_count > 1500:
+        #        countdown -= 1
+        #        last_count = count_timer
 
         player_sprite.draw(screen)
         #all_lasers.draw(screen)
@@ -648,7 +645,6 @@ def second_level():
             return GameState.DEAD
 
     return GameState.QUIT
-
 
 
 # Player class
@@ -798,7 +794,7 @@ class Power(pygame.sprite.Sprite):
 
         global power_up_time
 
-        self.rect.y += 5
+        self.rect.y += 25
         if self.rect.top > height:
             self.kill()
         if pygame.sprite.spritecollide(self, player_sprite, False):
@@ -931,8 +927,8 @@ def game_start():
             if power_up_time == 0:
                 playerShip.cooldown = 500
             if power_up_time > 0:
-                if time_now - power_cooldown > 700:
-                    playerShip.cooldown = 0
+                if time_now - power_cooldown > 800:
+                    playerShip.cooldown = 50
                     power_up_time -= 1
                     power_cooldown = time_now
 
