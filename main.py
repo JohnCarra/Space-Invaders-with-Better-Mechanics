@@ -8,10 +8,13 @@ from enum import Enum
 from pygame.sprite import RenderUpdates
 import random
 import math
+import os
 
 pygame.init()
 
 WHITE = (255, 255, 255)
+BLUE = (0, 150, 255)
+BLACK = (0, 0, 0)
 
 # Window size
 width = 800
@@ -56,16 +59,24 @@ background = pygame.image.load('Sprites/background.png')
 background = pygame.transform.scale(background, (width, height))
 
 # Level two image
-background_two = pygame.image.load('Sprites/background_two.png')
+background_two = pygame.image.load('Sprites/background2.png')
 background_two = pygame.transform.scale(background_two, (width, height))
+
+# Dead screen image
+dead_background = pygame.image.load('Sprites/deadscreen.png')
+dead_background = pygame.transform.scale(dead_background, (width, height))
 
 # Caption and Icon
 # Set the title to space invadors on the window
 pygame.display.set_caption("Space Invaders")
-icon = pygame.image.load('ufo.png')
+icon = pygame.image.load('Sprites/ufo.png')
 pygame.display.set_icon(icon)
 
+# Name of player
+user_text = ''
 
+# Highscore text file
+highscore_file = 'highscores.txt'
 
 
 
@@ -82,6 +93,11 @@ def create_surface_with_text(text, font_size, text_rgb):
 def draw_text(x, y, text, font_size, text_rgb):
     img = font.render(text, True, text_rgb)
     text_rect = img.get_rect(center = (x / 2, y))
+    screen.blit(img, text_rect)
+
+def draw_text_left(x, y, text, font_size, text_rgb):
+    img = font.render(text, True, text_rgb)
+    text_rect = img.get_rect(center = (x, y))
     screen.blit(img, text_rect)
 
 
@@ -192,8 +208,17 @@ def main():
         if game_state == GameState.NEWGAME:
             game_state = game_start()
 
+        if game_state == GameState.HIGHSCORE:
+            game_state = highscore(highscore_file)
+
+        if game_state == GameState.PAUSE:
+            game_state = game_pause()
+
         if game_state == GameState.DEAD:
             game_state = game_over()
+
+        if game_state == GameState.NAME:
+            game_state = getting_name()
 
         if game_state == GameState.SECOND:
             game_state = second_level()
@@ -210,12 +235,15 @@ def game_loop(screen, buttons):
     """
     while True:
 
-        screen.blit(background, (0,0))
+        #screen.blit(background, (0,0))
+        screen.fill(BLACK)
 
         mouse_up = False
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 mouse_up = True
+            if event.type == pygame.QUIT:
+                return GameState.QUIT
 
         for button in buttons:
             ui_action = button.update(pygame.mouse.get_pos(), mouse_up)
@@ -263,7 +291,7 @@ def title_screen(screen):
         font_size=30,
         text_rgb=WHITE,
         text="Highscores",
-        action=None,
+        action=GameState.HIGHSCORE,
     )
 
     quit_btn = UIElement(
@@ -278,8 +306,11 @@ def title_screen(screen):
 
     return game_loop(screen, buttons)
 
+
 # Display score
 font = pygame.font.Font('freesansbold.ttf', 25)
+font_bigger = pygame.font.Font('freesansbold.ttf', 70)
+
 
 def show_score():
     score = font.render("Score : " + str(playerShip.score), True, WHITE)
@@ -288,9 +319,184 @@ def show_score():
     screen.blit(health, (681, 775))
 
 
+def highscore(file_name):
+
+    scores = get_highscore(file_name)
+
+    title =  UIPlain(
+        center_position = (400, 200),
+        font_size = 50,
+        text_rgb = WHITE,
+        text = "Highscores",
+    )
+
+    first =  UIPlain(
+        center_position = (400, 300),
+        font_size = 30,
+        text_rgb = WHITE,
+        text = '1st: ' + scores.get('high')[0] + '- ' + scores.get('high')[1],
+    )
+
+    second =  UIPlain(
+        center_position = (400, 350),
+        font_size = 30,
+        text_rgb = WHITE,
+        text = '2nd: ' + scores.get('mid')[0] + '- ' + scores.get('mid')[1],
+    )
+
+    third =  UIPlain(
+        center_position = (400, 400),
+        font_size = 30,
+        text_rgb = WHITE,
+        text = '3rd: ' + scores.get('low')[0] + '- ' + scores.get('low')[1],
+    )
+
+    menu_btn = UIElement(
+        center_position=(130, 750),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Main Menu",
+        action=GameState.TITLE,
+    )
+
+    buttons = RenderUpdates(menu_btn, title, first, second, third)
+
+    return game_loop(screen, buttons)
+
+
+def get_highscore(file_name):
+    text = ''
+
+    if os.path.isfile(file_name):
+        with open(file_name, 'r') as text_file:
+            text = text_file.read()
+    else:
+        f = open(file_name, 'w')
+        text = 'high:a:0,mid:b:0,low:c:0,lowest:d:0'
+        f.write(text)
+        f.close()
+
+    text_list = text.split(',')
+
+    to_return = {}
+
+    for element in text_list:
+        i = element.split(':')
+        to_return[i[0]] = [i[1], i[2]]
+
+    return to_return
+
+
+def write_highscore(file_name, score):
+    f = open(file_name, 'w')
+    to_write = ''
+    for name in ('high','mid','low','lowest'):
+        to_write += name
+        to_write += ':'
+        to_write += str(score.get(name)[0])
+        to_write += ':'
+        to_write += str(score.get(name)[1])
+        to_write += ','
+
+    print(to_write)
+    to_write = to_write.rstrip(to_write[-1])
+    f.write(to_write)
+    f.close()
+
+
+def set_highscore(file_name, player_name, score):
+    scores = get_highscore(file_name)
+
+    old_high = scores.get('high')[0]
+    old_mid = scores.get('mid')[0]
+    old_low = scores.get('low')[0]
+    old_highscore = scores.get('high')[1]
+    old_midscore = scores.get('mid')[1]
+    old_lowscore = scores.get('low')[1]
+
+    if (int(score) >= int(scores.get('high')[1])):
+        print('in1')
+        scores['high'][0] = player_name
+        scores['high'][1] = score
+        scores['mid'][0] = old_high
+        scores['mid'][1] = old_highscore
+        scores['low'][0] = old_mid
+        scores['low'][1] = old_midscore
+    elif (int(score) >= int(scores.get('mid')[1])):
+        print('in2')
+        scores['mid'][0] = player_name
+        scores['mid'][1] = score
+        scores['low'][0] = old_mid
+        scores['low'][1] = old_midscore
+    elif (int(score) >= int(scores.get('low')[1])):
+        print('in3')
+        scores['low'][0] = player_name
+        scores['low'][1] = score
+        scores['lowest'][0] = old_low
+        scores['lowest'][1] = old_lowscore
+
+    write_highscore(file_name, scores)
+    print(scores)
+
+
+
+def game_pause():
+
+    paused = True
+    while paused:
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                paused = False
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        screen.fill(BLACK)
+        draw_text(width, 400, "PAUSED", 200, WHITE)
+
+        pygame.display.update()
+        clock.tick(fps)
+
+
+#Getting name of player after death
+def getting_name():
+    global user_text
+    global highscore_file
+    input_rect = pygame.Rect(365, 745, 58, 35)
+
+    running = True
+    while running:
+
+        screen.blit(dead_background, (0,0))
+
+        # Pressing escape while in a game closes window
+        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
+            if event.type == pygame.QUIT:
+                return GameState.QUIT
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    user_text = user_text[:-1]
+                else:
+                    user_text += event.unicode
+                if len(user_text) >= 4:
+                    user_text = user_text[:-1]
+                if event.key == pygame.K_RETURN:
+                    set_highscore(highscore_file, user_text, playerShip.score)
+                    return GameState.DEAD
+
+        pygame.draw.rect(screen, WHITE, input_rect, 2)
+        text = font.render(user_text, True, WHITE)
+        screen.blit(text, (input_rect.x + 5, input_rect.y + 5))
+
+        input_rect.w = max(10, text.get_width() + 10)
+
+        pygame.display.update()  # update our screen
+        clock.tick(fps)
+
+
 # Game over screen
 def game_over():
-
     game_over =  UIPlain(
         center_position = (400, 200),
         font_size = 70,
@@ -336,6 +542,7 @@ def game_over():
     all_enemies_lasers.empty()
     obstacle.empty()
     rock.empty()
+    power_up.empty()
     create_enemies()
 
     fast = Power(random.randint(10, width - 20), random.randint(-100, -50))
@@ -348,6 +555,9 @@ def game_over():
     global countdown
     countdown = 4
 
+    global user_text
+    user_text = ''
+
     buttons = RenderUpdates(retry_btn, menu_btn, quit_btn, game_over, final_score)
 
     return game_loop(screen, buttons)
@@ -355,7 +565,7 @@ def game_over():
 
 # Next Level
 def second_level():
-    playerShip.reset(width / 2, height - 100, 8, playerShip.health, playerShip.score, 500, "Sprites/car.png")
+    playerShip.reset(width / 2, height - 100, 8, playerShip.health, playerShip.score, 500, "Sprites/sub.png")
     running = True
     while running:
 
@@ -483,7 +693,7 @@ class Ship(pygame.sprite.Sprite):
         # Death
         if self.health <= 0:
             self.kill()
-            return GameState.DEAD
+            return GameState.NAME
 
     def reset(self, x, y, speed, health, score, cooldown, picture):
         self.speed = speed
@@ -695,9 +905,11 @@ def game_start():
 
         # Pressing escape while in a game closes window
         for event in pygame.event.get():   # for loop to check for a event trigger from pygames
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:     #Pressing escape key will quit the game
-                    running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                 game_pause()
+            if event.type == pygame.QUIT:
+                return GameState.QUIT
+
 
         # Everything begins to move
         if countdown == 0:
@@ -773,15 +985,9 @@ def game_start():
         show_score()    # Displays health and score
         pygame.display.update()  # update our screen
 
-        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
-            if event.type == pygame.QUIT:  # once the quit event presents itself by clicking the exit button it changes the value of running
-                running = False            # running will equal false which will terminate our program
+        if game_state == GameState.NAME:
+            return GameState.NAME
 
-        if game_state == GameState.DEAD:
-            return GameState.DEAD
-
-
-    return GameState.QUIT
 
 # Game state machine class
 class GameState(Enum):
@@ -790,6 +996,9 @@ class GameState(Enum):
     NEWGAME = 1
     SECOND = 2
     DEAD = 3
+    NAME = 4
+    PAUSE = 5
+    HIGHSCORE = 6
 
 
 if __name__ == "__main__":
