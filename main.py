@@ -12,9 +12,10 @@ import os
 
 pygame.init()
 
+# Colors
 WHITE = (255, 255, 255)
-BLUE = (0, 150, 255)
 BLACK = (0, 0, 0)
+BLUE = (0, 191, 255)
 
 # Window size
 width = 800
@@ -39,7 +40,7 @@ enemy_cooldown = 1000 #milliseconds?
 last_enemy_shot = pygame.time.get_ticks()
 
 # Freeze screen before a level begins moving to give player time
-countdown = 3
+countdown = 6
 last_count = pygame.time.get_ticks()
 
 # How long the power up lasts
@@ -53,7 +54,11 @@ next_count = pygame.time.get_ticks()
 # Timer for when end of level laser barrage
 end_timer = pygame.time.get_ticks()
 
-# Background image and level one image
+# Background image for title
+mainscreen = pygame.image.load('Sprites/mainscreen2.png')
+mainscreen = pygame.transform.scale(mainscreen, (width, height))
+
+# Background image for level one
 background = pygame.image.load('Sprites/background.png')
 background = pygame.transform.scale(background, (width, height))
 
@@ -77,22 +82,12 @@ user_text = ''
 # Highscore text file that is written to, to save highscores
 highscore_file = 'highscores.txt'
 
+# Fonts and font size for some displayed text
+font = pygame.font.Font('freesansbold.ttf', 25)
 
 
 
 
-# Returns surface with text written on
-def create_surface_with_text(text, font_size, text_rgb):
-    font = pygame.freetype.SysFont("Courier", font_size, bold=True)
-    surface, _ = font.render(text=text, fgcolor=text_rgb)
-    return surface.convert_alpha()
-
-
-# Puts text onto screen
-def draw_text(x, y, text, font_size, text_rgb):
-    img = font.render(text, True, text_rgb)
-    text_rect = img.get_rect(center = (x / 2, y))
-    screen.blit(img, text_rect)
 
 
 # Buttons that can't be clicked
@@ -189,462 +184,6 @@ class UIElement(Sprite):
     def draw(self, surface):
         """ Draws element onto a surface """
         surface.blit(self.image, self.rect)
-
-
-# Game state machine, helps transition to different screens
-def main():
-    game_state = GameState.TITLE
-
-    while True:
-        if game_state == GameState.TITLE:
-            game_state = title_screen(screen)
-
-        if game_state == GameState.NEWGAME:
-            game_state = game_start()
-
-        if game_state == GameState.HIGHSCORE:
-            game_state = highscore(highscore_file)
-
-        if game_state == GameState.PAUSE:
-            game_state = game_pause()
-
-        if game_state == GameState.DEAD:
-            game_state = game_over()
-
-        if game_state == GameState.NAME:
-            game_state = getting_name()
-
-        if game_state == GameState.SECOND:
-            game_state = second_level()
-
-        if game_state == GameState.QUIT:
-            pygame.quit()
-            return
-
-
-# Draws buttons on screen and checks if a button has been clicked
-def game_loop(screen, buttons):
-    """ Handles game loop until an action is return by a button in the
-        buttons sprite renderer.
-    """
-    while True:
-
-        #screen.blit(background, (0,0))
-        screen.fill(BLACK)
-
-        mouse_up = False
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                mouse_up = True
-            if event.type == pygame.QUIT:
-                return GameState.QUIT
-
-        for button in buttons:
-            ui_action = button.update(pygame.mouse.get_pos(), mouse_up)
-            if ui_action is not None:
-                return ui_action
-
-        buttons.draw(screen)
-        pygame.display.flip()
-
-
-# Title screen
-def title_screen(screen):
-
-    title =  UIPlain(
-        center_position = (400, 50),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "Space Invaders",
-    )
-
-    title_2 =  UIPlain(
-        center_position = (400, 120),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "with",
-    )
-
-    title_3 =  UIPlain(
-        center_position = (400, 200),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "Cooler Mechanics",
-    )
-
-    start_btn = UIElement(
-        center_position=(400, 500),
-        font_size=30,
-        text_rgb=WHITE,
-        text="Start",
-        action=GameState.NEWGAME,
-    )
-
-    score_btn = UIElement(
-        center_position=(400, 600),
-        font_size=30,
-        text_rgb=WHITE,
-        text="Highscores",
-        action=GameState.HIGHSCORE,
-    )
-
-    quit_btn = UIElement(
-        center_position=(400, 700),
-        font_size=30,
-        text_rgb=WHITE,
-        text="Quit",
-        action=GameState.QUIT,
-    )
-
-    buttons = RenderUpdates(start_btn, score_btn, quit_btn, title, title_2, title_3)
-
-    return game_loop(screen, buttons)
-
-
-# Fonts and font size for some displayed text
-font = pygame.font.Font('freesansbold.ttf', 25)
-font_bigger = pygame.font.Font('freesansbold.ttf', 70)
-
-
-# Displays your current score and health during the duration of the game
-def show_score():
-    score = font.render("Score : " + str(playerShip.score), True, WHITE)
-    screen.blit(score, (1, 775))
-    health = font.render("Health : " + str(playerShip.health), True, WHITE)
-    screen.blit(health, (681, 775))
-
-
-# Dsplaying all saved highscores on highscore screen
-def highscore(file_name):
-
-    scores = get_highscore(file_name)
-
-    title =  UIPlain(
-        center_position = (400, 200),
-        font_size = 50,
-        text_rgb = WHITE,
-        text = "Highscores",
-    )
-
-    first =  UIPlain(
-        center_position = (400, 300),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = '1st: ' + scores.get('high')[0] + ' - ' + scores.get('high')[1],
-    )
-
-    second =  UIPlain(
-        center_position = (400, 350),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = '2nd: ' + scores.get('mid')[0] + ' - ' + scores.get('mid')[1],
-    )
-
-    third =  UIPlain(
-        center_position = (400, 400),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = '3rd: ' + scores.get('low')[0] + ' - ' + scores.get('low')[1],
-    )
-
-    menu_btn = UIElement(
-        center_position=(130, 750),
-        font_size=30,
-        text_rgb=WHITE,
-        text="Main Menu",
-        action=GameState.TITLE,
-    )
-
-    buttons = RenderUpdates(menu_btn, title, first, second, third)
-
-    return game_loop(screen, buttons)
-
-
-def get_highscore(file_name):
-    text = ''
-
-    if os.path.isfile(file_name):
-        with open(file_name, 'r') as text_file:
-            text = text_file.read()
-    else:
-        f = open(file_name, 'w')
-        text = 'high:Empty:0,mid:Empty:0,low:Empty:0,lowest:Empty:0'
-        f.write(text)
-        f.close()
-
-    text_list = text.split(',')
-
-    to_return = {}
-
-    for element in text_list:
-        i = element.split(':')
-        to_return[i[0]] = [i[1], i[2]]
-
-    return to_return
-
-
-def write_highscore(file_name, score):
-    f = open(file_name, 'w')
-    to_write = ''
-    for name in ('high','mid','low','lowest'):
-        to_write += name
-        to_write += ':'
-        to_write += str(score.get(name)[0])
-        to_write += ':'
-        to_write += str(score.get(name)[1])
-        to_write += ','
-
-    print(to_write)
-    to_write = to_write.rstrip(to_write[-1])
-    f.write(to_write)
-    f.close()
-
-
-def set_highscore(file_name, player_name, score):
-    scores = get_highscore(file_name)
-
-    old_high = scores.get('high')[0]
-    old_mid = scores.get('mid')[0]
-    old_low = scores.get('low')[0]
-    old_highscore = scores.get('high')[1]
-    old_midscore = scores.get('mid')[1]
-    old_lowscore = scores.get('low')[1]
-
-    if (int(score) >= int(scores.get('high')[1])):
-        print('in1')
-        scores['high'][0] = player_name
-        scores['high'][1] = score
-        scores['mid'][0] = old_high
-        scores['mid'][1] = old_highscore
-        scores['low'][0] = old_mid
-        scores['low'][1] = old_midscore
-    elif (int(score) >= int(scores.get('mid')[1])):
-        print('in2')
-        scores['mid'][0] = player_name
-        scores['mid'][1] = score
-        scores['low'][0] = old_mid
-        scores['low'][1] = old_midscore
-    elif (int(score) >= int(scores.get('low')[1])):
-        print('in3')
-        scores['low'][0] = player_name
-        scores['low'][1] = score
-        scores['lowest'][0] = old_low
-        scores['lowest'][1] = old_lowscore
-
-    write_highscore(file_name, scores)
-    print(scores)
-
-
-def game_pause():
-
-    paused = True
-    while paused:
-
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                paused = False
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                quit()
-
-        screen.fill(BLACK)
-        draw_text(width, 400, "PAUSED", 200, WHITE)
-
-        pygame.display.update()
-        clock.tick(fps)
-
-
-#Getting name of player after death
-def getting_name():
-    global user_text
-    global highscore_file
-    input_rect = pygame.Rect(365, 745, 58, 35)
-
-    running = True
-    while running:
-
-        screen.blit(dead_background, (0,0))
-
-        # Pressing escape while in a game closes window
-        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
-            if event.type == pygame.QUIT:
-                return GameState.QUIT
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_BACKSPACE:
-                    user_text = user_text[:-1]
-                else:
-                    user_text += event.unicode
-                if len(user_text) >= 4:
-                    user_text = user_text[:-1]
-                if event.key == pygame.K_RETURN:
-                    set_highscore(highscore_file, user_text, playerShip.score)
-                    return GameState.DEAD
-
-        pygame.draw.rect(screen, WHITE, input_rect, 2)
-        text = font.render(user_text, True, WHITE)
-        screen.blit(text, (input_rect.x + 5, input_rect.y + 5))
-
-        input_rect.w = max(10, text.get_width() + 10)
-
-        pygame.display.update()  # update our screen
-        clock.tick(fps)
-
-
-# Game over screen
-def game_over():
-    game_over =  UIPlain(
-        center_position = (400, 200),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "GAME OVER",
-    )
-
-    final_score = UIPlain(
-        center_position = (400, 300),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = "Final Score : " + str(playerShip.score),
-    )
-
-    retry_btn = UIElement(
-        center_position=(400, 400),
-        font_size=30,
-        text_rgb=WHITE,
-        text="Retry?",
-        action=GameState.NEWGAME,
-    )
-
-    menu_btn = UIElement(
-        center_position=(400, 650),
-        font_size=30,
-        text_rgb=WHITE,
-        text="Main Menu",
-        action=GameState.TITLE,
-    )
-
-    quit_btn = UIElement(
-        center_position=(400, 700),
-        font_size=30,
-        text_rgb=WHITE,
-        text="Quit",
-        action=GameState.QUIT,
-    )
-
-    playerShip.reset(width / 2, height - 100, 8, 5, 0, 500, "Sprites/player.png")
-    player_sprite.add(playerShip)
-    all_lasers.empty()
-    all_enemies.empty()
-    all_enemies_lasers.empty()
-    obstacle.empty()
-    rock.empty()
-    power_up.empty()
-    create_enemies()
-
-    fast = Power(random.randint(10, width - 20), random.randint(-100, -50))
-    power_up.add(fast)
-
-    for i in range(1, 20):
-        meteorite = Obstacle(random.randint(10, width - 20), random.randint(-5000, -50))
-        obstacle.add(meteorite)
-
-    global countdown
-    countdown = 4
-
-    global user_text
-    user_text = ''
-
-    buttons = RenderUpdates(retry_btn, menu_btn, quit_btn, game_over, final_score)
-
-    return game_loop(screen, buttons)
-
-
-# Next Level
-def second_level():
-    playerShip.reset(width / 2, height - 100, 8, playerShip.health, playerShip.score, 500, "Sprites/sub.png")
-    running = True
-    while running:
-
-        screen.blit(background_two, (0,0))
-
-        draw_text(width, 400, "Buy the DLC for more content.", 50, WHITE)
-
-        clock.tick(fps)
-
-        global countdown
-        global last_count
-        global power_up_time
-        global next_count
-        global next
-        game_state = None
-
-        time_now = pygame.time.get_ticks()
-
-        # Pressing escape while in a game closes window
-        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:     #Pressing escape key will quit the game
-                    running = False
-
-        #if countdown == 0:
-            #if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 5 and len(all_enemies) > 0:
-            #    attacking_enemy = random.choice(all_enemies.sprites())
-            #    enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
-            #    all_enemies_lasers.add(enemy_laser)
-
-
-        game_state = playerShip.update()
-            #all_lasers.update()
-            #all_enemies.update()
-            #all_enemies_lasers.update()
-            #power_up.update()
-            #obstacle.update()
-
-            # How long the power up lasts
-            #if power_up_time == 0:
-            #    playerShip.cooldown = 500
-            #if power_up_time > 0:
-            #    down = pygame.time.get_ticks()
-            #    if down - next > 800:
-            #        playerShip.cooldown = 0
-            #        power_up_time -= 1
-            #        next = down
-
-            #if len(all_enemies) == 0:
-            #    draw_text(width, 450, "Complete!", font, WHITE)
-            #    freeze = pygame.time.get_ticks()
-            #    if next > 0:
-            #        if freeze - next_count > 1000:
-            #            next -= 1
-            #            next_count = freeze
-            #    if next == 0:
-            #        return GameState.SECOND
-
-        #if countdown > 0:
-        #    draw_text(width, 450, "READY!", font, WHITE)
-        #    draw_text(width, 490, str(countdown), font, WHITE)
-        #    count_timer = pygame.time.get_ticks()
-        #    if count_timer - last_count > 1500:
-        #        countdown -= 1
-        #        last_count = count_timer
-
-        player_sprite.draw(screen)
-        #all_lasers.draw(screen)
-        #all_enemies.draw(screen)
-        #all_enemies_lasers.draw(screen)
-        #power_up.draw(screen)
-        #obstacle.draw(screen)
-
-        show_score()
-        pygame.display.update()  # update our screen
-
-        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
-            if event.type == pygame.QUIT:  # once the quit event presents itself by clicking the exit button it changes the value of running
-                running = False            # running will equal false which will terminate our program
-
-        if game_state == GameState.DEAD:
-            return GameState.DEAD
-
-    return GameState.QUIT
 
 
 # Player class
@@ -794,7 +333,7 @@ class Power(pygame.sprite.Sprite):
 
         global power_up_time
 
-        self.rect.y += 25
+        self.rect.y += 20
         if self.rect.top > height:
             self.kill()
         if pygame.sprite.spritecollide(self, player_sprite, False):
@@ -841,16 +380,500 @@ class Rock(pygame.sprite.Sprite):
         self.rect.x -= 1.5
         if self.rect.right < 0:
             self.kill()
+        if pygame.sprite.spritecollide(self, player_sprite, True):
+            playerShip.health -= playerShip.health
+            self.kill()
 
 
-# Initializing lists
-player_sprite = pygame.sprite.Group()
-all_lasers = pygame.sprite.Group()
-all_enemies = pygame.sprite.Group()
-all_enemies_lasers = pygame.sprite.Group()
-power_up = pygame.sprite.Group()
-obstacle = pygame.sprite.Group()
-rock = pygame.sprite.Group()
+# Returns surface with text written on
+def create_surface_with_text(text, font_size, text_rgb):
+    font = pygame.freetype.SysFont("Courier", font_size, bold=True)
+    surface, _ = font.render(text=text, fgcolor=text_rgb)
+    return surface.convert_alpha()
+
+
+# Puts text onto screen
+def draw_text(x, y, text, font_size, text_rgb):
+    img = font.render(text, True, text_rgb)
+    text_rect = img.get_rect(center = (x / 2, y))
+    screen.blit(img, text_rect)
+
+
+# Game state machine, helps transition to different screens
+def main():
+    game_state = GameState.TITLE
+
+    while True:
+        if game_state == GameState.TITLE:
+            game_state = title_screen(screen)
+
+        if game_state == GameState.NEWGAME:
+            game_state = game_start()
+
+        if game_state == GameState.HIGHSCORE:
+            game_state = highscore(highscore_file)
+
+        if game_state == GameState.PAUSE:
+            game_state = game_pause()
+
+        if game_state == GameState.DEAD:
+            game_state = game_over()
+
+        if game_state == GameState.NAME:
+            game_state = getting_name()
+
+        if game_state == GameState.SECOND:
+            game_state = second_level()
+
+        if game_state == GameState.QUIT:
+            pygame.quit()
+            return
+
+
+# Draws buttons on screen and checks if a button has been clicked
+def game_loop(screen, buttons):
+    """ Handles game loop until an action is return by a button in the
+        buttons sprite renderer.
+    """
+    while True:
+
+        screen.blit(mainscreen, (0,0))
+
+        mouse_up = False
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                mouse_up = True
+            if event.type == pygame.QUIT:
+                return GameState.QUIT
+
+        for button in buttons:
+            ui_action = button.update(pygame.mouse.get_pos(), mouse_up)
+            if ui_action is not None:
+                return ui_action
+
+        buttons.draw(screen)
+        pygame.display.flip()
+
+
+# Title screen
+def title_screen(screen):
+
+    title =  UIPlain(
+        center_position = (400, 50),
+        font_size = 70,
+        text_rgb = BLUE,
+        text = "Space Invaders",
+    )
+
+    title_2 =  UIPlain(
+        center_position = (400, 120),
+        font_size = 70,
+        text_rgb = BLUE,
+        text = "with",
+    )
+
+    title_3 =  UIPlain(
+        center_position = (400, 200),
+        font_size = 70,
+        text_rgb = BLUE,
+        text = "Cooler Mechanics",
+    )
+
+    title_4 =  UIPlain(
+        center_position = (405, 55),
+        font_size = 70,
+        text_rgb = WHITE,
+        text = "Space Invaders",
+    )
+
+    title_5 =  UIPlain(
+        center_position = (405, 125),
+        font_size = 70,
+        text_rgb = WHITE,
+        text = "with",
+    )
+
+    title_6 =  UIPlain(
+        center_position = (405, 205),
+        font_size = 70,
+        text_rgb = WHITE,
+        text = "Cooler Mechanics",
+    )
+
+    start_btn = UIElement(
+        center_position=(400, 500),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Start",
+        action=GameState.NEWGAME,
+    )
+
+    score_btn = UIElement(
+        center_position=(400, 600),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Highscores",
+        action=GameState.HIGHSCORE,
+    )
+
+    quit_btn = UIElement(
+        center_position=(400, 700),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Quit",
+        action=GameState.QUIT,
+    )
+
+    buttons = RenderUpdates(start_btn, score_btn, quit_btn, title, title_2, title_3, title_4, title_5, title_6)
+
+    return game_loop(screen, buttons)
+
+
+# Displays your current score and health during the duration of the game
+def show_score():
+    score = font.render("Score : " + str(playerShip.score), True, WHITE)
+    screen.blit(score, (1, 775))
+    health = font.render("Health : " + str(playerShip.health), True, WHITE)
+    screen.blit(health, (681, 775))
+
+
+# Dsplaying all saved highscores on highscore screen
+def highscore(file_name):
+
+    scores = get_highscore(file_name)
+
+    title =  UIPlain(
+        center_position = (400, 200),
+        font_size = 50,
+        text_rgb = WHITE,
+        text = "Highscores",
+    )
+
+    first =  UIPlain(
+        center_position = (400, 300),
+        font_size = 30,
+        text_rgb = WHITE,
+        text = '1st: ' + scores.get('high')[0] + ' - ' + scores.get('high')[1],
+    )
+
+    second =  UIPlain(
+        center_position = (400, 350),
+        font_size = 30,
+        text_rgb = WHITE,
+        text = '2nd: ' + scores.get('mid')[0] + ' - ' + scores.get('mid')[1],
+    )
+
+    third =  UIPlain(
+        center_position = (400, 400),
+        font_size = 30,
+        text_rgb = WHITE,
+        text = '3rd: ' + scores.get('low')[0] + ' - ' + scores.get('low')[1],
+    )
+
+    menu_btn = UIElement(
+        center_position=(130, 750),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Main Menu",
+        action=GameState.TITLE,
+    )
+
+    buttons = RenderUpdates(menu_btn, title, first, second, third)
+
+    return game_loop(screen, buttons)
+
+
+def get_highscore(file_name):
+    text = ''
+
+    if os.path.isfile(file_name):
+        with open(file_name, 'r') as text_file:
+            text = text_file.read()
+    else:
+        f = open(file_name, 'w')
+        text = 'high:Empty:0,mid:Empty:0,low:Empty:0,lowest:Empty:0'
+        f.write(text)
+        f.close()
+
+    text_list = text.split(',')
+
+    to_return = {}
+
+    for element in text_list:
+        i = element.split(':')
+        to_return[i[0]] = [i[1], i[2]]
+
+    return to_return
+
+
+def write_highscore(file_name, score):
+    f = open(file_name, 'w')
+    to_write = ''
+    for name in ('high','mid','low','lowest'):
+        to_write += name
+        to_write += ':'
+        to_write += str(score.get(name)[0])
+        to_write += ':'
+        to_write += str(score.get(name)[1])
+        to_write += ','
+
+    print(to_write)
+    to_write = to_write.rstrip(to_write[-1])
+    f.write(to_write)
+    f.close()
+
+
+def set_highscore(file_name, player_name, score):
+    scores = get_highscore(file_name)
+
+    old_high = scores.get('high')[0]
+    old_mid = scores.get('mid')[0]
+    old_low = scores.get('low')[0]
+    old_highscore = scores.get('high')[1]
+    old_midscore = scores.get('mid')[1]
+    old_lowscore = scores.get('low')[1]
+
+    if (int(score) >= int(scores.get('high')[1])):
+        print('in1')
+        scores['high'][0] = player_name
+        scores['high'][1] = score
+        scores['mid'][0] = old_high
+        scores['mid'][1] = old_highscore
+        scores['low'][0] = old_mid
+        scores['low'][1] = old_midscore
+    elif (int(score) >= int(scores.get('mid')[1])):
+        print('in2')
+        scores['mid'][0] = player_name
+        scores['mid'][1] = score
+        scores['low'][0] = old_mid
+        scores['low'][1] = old_midscore
+    elif (int(score) >= int(scores.get('low')[1])):
+        print('in3')
+        scores['low'][0] = player_name
+        scores['low'][1] = score
+        scores['lowest'][0] = old_low
+        scores['lowest'][1] = old_lowscore
+
+    write_highscore(file_name, scores)
+    print(scores)
+
+
+# Pausing the game
+def game_pause():
+
+    paused = True
+    while paused:
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                paused = False
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        screen.fill(BLACK)
+        draw_text(width, 400, "PAUSED", 200, WHITE)
+
+        pygame.display.update()
+        clock.tick(fps)
+
+
+# Getting name of player after death
+def getting_name():
+    global user_text
+    global highscore_file
+    input_rect = pygame.Rect(365, 745, 58, 35)
+
+    running = True
+    while running:
+
+        screen.blit(dead_background, (0,0))
+
+        # Getting user input for name
+        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
+            if event.type == pygame.QUIT:
+                return GameState.QUIT
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE:
+                    user_text = user_text[:-1]
+                else:
+                    user_text += event.unicode
+                if len(user_text) >= 4:
+                    user_text = user_text[:-1]
+                if event.key == pygame.K_RETURN:
+                    set_highscore(highscore_file, user_text, playerShip.score)
+                    return GameState.DEAD
+
+        # Displaying what the user types in
+        pygame.draw.rect(screen, WHITE, input_rect, 2)
+        text = font.render(user_text, True, WHITE)
+        screen.blit(text, (input_rect.x + 5, input_rect.y + 5))
+
+        # Box around the user input moves with the input
+        input_rect.w = max(10, text.get_width() + 10)
+
+        pygame.display.update()  # update our screen
+        clock.tick(fps)
+
+
+# Game over screen
+def game_over():
+    game_over =  UIPlain(
+        center_position = (400, 200),
+        font_size = 70,
+        text_rgb = WHITE,
+        text = "GAME OVER",
+    )
+
+    final_score = UIPlain(
+        center_position = (400, 300),
+        font_size = 30,
+        text_rgb = WHITE,
+        text = "Final Score : " + str(playerShip.score),
+    )
+
+    retry_btn = UIElement(
+        center_position=(400, 400),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Retry?",
+        action=GameState.NEWGAME,
+    )
+
+    menu_btn = UIElement(
+        center_position=(400, 650),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Main Menu",
+        action=GameState.TITLE,
+    )
+
+    quit_btn = UIElement(
+        center_position=(400, 700),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Quit",
+        action=GameState.QUIT,
+    )
+
+    playerShip.reset(width / 2, height - 100, 8, 5, 0, 500, "Sprites/player.png")
+    player_sprite.add(playerShip)
+    all_lasers.empty()
+    all_enemies.empty()
+    all_enemies_lasers.empty()
+    obstacle.empty()
+    rock.empty()
+    power_up.empty()
+    create_enemies()
+
+    fast = Power(random.randint(10, width - 20), random.randint(-100, -50))
+    power_up.add(fast)
+
+    for i in range(1, 20):
+        meteorite = Obstacle(random.randint(10, width - 20), random.randint(-5000, -50))
+        obstacle.add(meteorite)
+
+    global countdown
+    countdown = 6
+
+    global user_text
+    user_text = ''
+
+    buttons = RenderUpdates(retry_btn, menu_btn, quit_btn, game_over, final_score)
+
+    return game_loop(screen, buttons)
+
+
+# Next Level
+def second_level():
+    playerShip.reset(width / 2, height - 100, 8, playerShip.health, playerShip.score, 500, "Sprites/sub.png")
+    running = True
+    while running:
+
+        screen.blit(background_two, (0,0))
+
+        draw_text(width, 400, "Buy the DLC for more content.", 50, WHITE)
+
+        clock.tick(fps)
+
+        global countdown
+        global last_count
+        global power_up_time
+        global next_count
+        global next
+        game_state = None
+
+        time_now = pygame.time.get_ticks()
+
+        # Pressing escape while in a game closes window
+        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                 game_pause()
+            if event.type == pygame.QUIT:
+                return GameState.QUIT
+
+        #if countdown == 0:
+            #if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 5 and len(all_enemies) > 0:
+            #    attacking_enemy = random.choice(all_enemies.sprites())
+            #    enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
+            #    all_enemies_lasers.add(enemy_laser)
+
+
+        game_state = playerShip.update()
+            #all_lasers.update()
+            #all_enemies.update()
+            #all_enemies_lasers.update()
+            #power_up.update()
+            #obstacle.update()
+
+            # How long the power up lasts
+            #if power_up_time == 0:
+            #    playerShip.cooldown = 500
+            #if power_up_time > 0:
+            #    down = pygame.time.get_ticks()
+            #    if down - next > 800:
+            #        playerShip.cooldown = 0
+            #        power_up_time -= 1
+            #        next = down
+
+            #if len(all_enemies) == 0:
+            #    draw_text(width, 450, "Complete!", font, WHITE)
+            #    freeze = pygame.time.get_ticks()
+            #    if next > 0:
+            #        if freeze - next_count > 1000:
+            #            next -= 1
+            #            next_count = freeze
+            #    if next == 0:
+            #        return GameState.SECOND
+
+        #if countdown > 0:
+        #    draw_text(width, 450, "READY!", font, WHITE)
+        #    draw_text(width, 490, str(countdown), font, WHITE)
+        #    count_timer = pygame.time.get_ticks()
+        #    if count_timer - last_count > 1500:
+        #        countdown -= 1
+        #        last_count = count_timer
+
+        player_sprite.draw(screen)
+        #all_lasers.draw(screen)
+        #all_enemies.draw(screen)
+        #all_enemies_lasers.draw(screen)
+        #power_up.draw(screen)
+        #obstacle.draw(screen)
+
+        show_score()
+        pygame.display.update()  # update our screen
+
+        for event in pygame.event.get():   # for loop to check for a event trigger from pygames
+            if event.type == pygame.QUIT:  # once the quit event presents itself by clicking the exit button it changes the value of running
+                running = False            # running will equal false which will terminate our program
+
+        if game_state == GameState.DEAD:
+            return GameState.DEAD
+
+    return GameState.QUIT
+
+
 
 
 # Creating enemies
@@ -861,6 +884,16 @@ def create_enemies():
             enemy = Enemy((80 + item * 80), (50 + row * 100), 4)
             all_enemies.add(enemy)
 
+# Initializing sprite lists
+player_sprite = pygame.sprite.Group()
+all_lasers = pygame.sprite.Group()
+all_enemies = pygame.sprite.Group()
+all_enemies_lasers = pygame.sprite.Group()
+power_up = pygame.sprite.Group()
+obstacle = pygame.sprite.Group()
+rock = pygame.sprite.Group()
+
+# Creating enemies
 create_enemies()
 
 # Creating player
@@ -885,8 +918,6 @@ def game_start():
 
         screen.blit(background, (0,0))
 
-        clock.tick(fps)
-
         global countdown
         global last_count
         global power_up_time
@@ -899,7 +930,7 @@ def game_start():
 
         time_now = pygame.time.get_ticks()
 
-        # Pressing escape while in a game closes window
+        # Pressing escape while in a game pauses game
         for event in pygame.event.get():   # for loop to check for a event trigger from pygames
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                  game_pause()
@@ -907,14 +938,26 @@ def game_start():
                 return GameState.QUIT
 
 
+        # Countdown timer to start level
+        if countdown > 0:
+            draw_text(width, 450, "READY!", font, WHITE)
+            if time_now - last_count > 1500:
+                countdown -= 1
+                last_count = time_now
+            if countdown < 4:
+                draw_text(width, 490, str(countdown), font, WHITE)
+
+
         # Everything begins to move
         if countdown == 0:
+
+            # Choosing which enemy will shoot at a set interval
             if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 5 and len(all_enemies) > 0:
                 attacking_enemy = random.choice(all_enemies.sprites())
                 enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
                 all_enemies_lasers.add(enemy_laser)
 
-
+            # Updating movement of all sprites
             game_state = playerShip.update()
             all_lasers.update()
             all_enemies.update()
@@ -927,7 +970,7 @@ def game_start():
             if power_up_time == 0:
                 playerShip.cooldown = 500
             if power_up_time > 0:
-                if time_now - power_cooldown > 800:
+                if time_now - power_cooldown > 700:
                     playerShip.cooldown = 50
                     power_up_time -= 1
                     power_cooldown = time_now
@@ -941,7 +984,7 @@ def game_start():
                 if time_now - end_timer > 200:
                     for row in range(1):
                         for item in range(40):
-                            #Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
+                            # Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
                             laser = Enemy_Laser((10 + item * 20), (2 + row * 50))
                             all_enemies_lasers.add(laser)
                             end_timer = time_now
@@ -959,17 +1002,11 @@ def game_start():
                     playerShip.speed = 0
                     playerShip.rect.top -= 5
                 if next == 0:
-                    countdown = 4
+                    countdown = 6
                     return GameState.SECOND
 
-        # Countdown timer for start of game
-        if countdown > 0:
-            draw_text(width, 450, "READY!", font, WHITE)
-            draw_text(width, 490, str(countdown), font, WHITE)
-            if time_now - last_count > 1500:
-                countdown -= 1
-                last_count = time_now
 
+        # Draws all sprites onto screen
         player_sprite.draw(screen)
         all_lasers.draw(screen)
         all_enemies.draw(screen)
@@ -978,9 +1015,16 @@ def game_start():
         obstacle.draw(screen)
         rock.draw(screen)
 
-        show_score()    # Displays health and score
-        pygame.display.update()  # update our screen
+        # Displays health and score
+        show_score()
 
+        # Update our screen
+        pygame.display.update()
+
+        # Locks framerate to specified fps
+        clock.tick(fps)
+
+        # If health becomes 0, Ship class returns a game_state which this if statement uses to change screens
         if game_state == GameState.NAME:
             return GameState.NAME
 
