@@ -289,6 +289,10 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.y += 55
             self.speed = abs(self.speed)
 
+        if self.rect.top > height:
+            playerShip.health -= 1
+            self.kill()
+
         if pygame.sprite.spritecollide(self, player_sprite, False, pygame.sprite.collide_mask):
             self.kill()
             playerShip.health -= 1
@@ -402,6 +406,7 @@ def draw_text(x, y, text, font_size, text_rgb):
 # Game state machine, helps transition to different screens
 def main():
     game_state = GameState.TITLE
+    global time_now
 
     while True:
         if game_state == GameState.TITLE:
