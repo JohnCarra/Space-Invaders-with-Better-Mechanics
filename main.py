@@ -35,6 +35,12 @@ cols_2 = 50
 # For stopping the spawning of lasers at the end of level one
 stop = 0
 
+# For stopping production of enemies after laser and rock part
+stop_making = 0
+
+# For moving to the second mechanic after big rock
+move_on = 10
+
 # Firerate of enemies
 enemy_cooldown = 1000 #milliseconds?
 last_enemy_shot = pygame.time.get_ticks()
@@ -54,6 +60,9 @@ next_count = pygame.time.get_ticks()
 # Timer for when end of level laser barrage
 end_timer = pygame.time.get_ticks()
 
+# Timer for when end of second laser barrage
+ender_timer = pygame.time.get_ticks()
+
 # Background image for title
 mainscreen = pygame.image.load('Sprites/mainscreen2.png')
 mainscreen = pygame.transform.scale(mainscreen, (width, height))
@@ -70,6 +79,10 @@ background_two = pygame.transform.scale(background_two, (width, height))
 dead_background = pygame.image.load('Sprites/deadscreen.png')
 dead_background = pygame.transform.scale(dead_background, (width, height))
 
+# Shrug image
+shrug = pygame.image.load('Sprites/shrug.png')
+shrug = pygame.transform.scale(shrug, (100, 50))
+
 # Caption and Icon
 # Set the title to space invadors on the window
 pygame.display.set_caption("Space Invaders")
@@ -82,8 +95,6 @@ user_text = ''
 # Highscore text file that is written to, to save highscores
 highscore_file = 'highscores.txt'
 
-# Fonts and font size for some displayed text
-font = pygame.font.Font('freesansbold.ttf', 25)
 
 
 
@@ -298,6 +309,19 @@ class Enemy(pygame.sprite.Sprite):
             playerShip.health -= 1
 
 
+# Enemy that stays stills class
+class Enemy_Still(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+
+        super().__init__()
+
+        #Draw the enemy
+        self.image = pygame.image.load("Sprites/enemy.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (32, 32))
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+
+
 # Enemy laser class
 class Enemy_Laser(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -369,9 +393,11 @@ class Obstacle(pygame.sprite.Sprite):
 
 # Obstacle class
 class Rock(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, speed):
 
         super().__init__()
+
+        self.speed = speed
 
         self.image = pygame.image.load("Sprites/meteorite.png").convert_alpha()
 
@@ -381,7 +407,7 @@ class Rock(pygame.sprite.Sprite):
 
     def update(self):
 
-        self.rect.x -= 1.5
+        self.rect.x -= self.speed
         if self.rect.right < 0:
             self.kill()
         if pygame.sprite.spritecollide(self, player_sprite, True):
@@ -398,6 +424,7 @@ def create_surface_with_text(text, font_size, text_rgb):
 
 # Puts text onto screen
 def draw_text(x, y, text, font_size, text_rgb):
+    font = pygame.font.Font('freesansbold.ttf', font_size)
     img = font.render(text, True, text_rgb)
     text_rect = img.get_rect(center = (x / 2, y))
     screen.blit(img, text_rect)
@@ -536,6 +563,7 @@ def title_screen(screen):
 
 # Displays your current score and health during the duration of the game
 def show_score():
+    font = pygame.font.Font('freesansbold.ttf', 25)
     score = font.render("Score : " + str(playerShip.score), True, WHITE)
     screen.blit(score, (1, 775))
     health = font.render("Health : " + str(playerShip.health), True, WHITE)
@@ -677,7 +705,7 @@ def game_pause():
                 quit()
 
         screen.fill(BLACK)
-        draw_text(width, 400, "PAUSED", 200, WHITE)
+        draw_text(width, 400, "PAUSED", 25, WHITE)
 
         pygame.display.update()
         clock.tick(fps)
@@ -687,6 +715,7 @@ def game_pause():
 def getting_name():
     global user_text
     global highscore_file
+    font = pygame.font.Font('freesansbold.ttf', 25)
     input_rect = pygame.Rect(365, 745, 58, 35)
 
     running = True
@@ -778,8 +807,20 @@ def game_over():
         meteorite = Obstacle(random.randint(10, width - 20), random.randint(-5000, -50))
         obstacle.add(meteorite)
 
+    global stop
+    stop = 0
+
+    global stop_making
+    stop_making = 0
+
+    global move_on
+    move_on = 10
+
     global countdown
     countdown = 6
+
+    global next
+    next = 10
 
     global user_text
     user_text = ''
@@ -797,15 +838,13 @@ def second_level():
 
         screen.blit(background_two, (0,0))
 
-        draw_text(width, 400, "Buy the DLC for more content.", 50, WHITE)
+        draw_text(width, 400, "Buy the DLC for more content.", 25, WHITE)
 
         clock.tick(fps)
 
         global countdown
         global last_count
-        global power_up_time
-        global next_count
-        global next
+
         game_state = None
 
         time_now = pygame.time.get_ticks()
@@ -817,54 +856,20 @@ def second_level():
             if event.type == pygame.QUIT:
                 return GameState.QUIT
 
-        #if countdown == 0:
-            #if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 5 and len(all_enemies) > 0:
-            #    attacking_enemy = random.choice(all_enemies.sprites())
-            #    enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
-            #    all_enemies_lasers.add(enemy_laser)
+        if countdown > 0:
+            if time_now - last_count > 2000:
+                countdown -= 1
+                last_count = time_now
+            if countdown < 4:
+                draw_text(width, 200, "THE GAME WILL NOW CLOSE IN " + str(countdown), 40, WHITE)
+
+        if countdown == 0:
+            return GameState.QUIT
 
 
         game_state = playerShip.update()
-            #all_lasers.update()
-            #all_enemies.update()
-            #all_enemies_lasers.update()
-            #power_up.update()
-            #obstacle.update()
-
-            # How long the power up lasts
-            #if power_up_time == 0:
-            #    playerShip.cooldown = 500
-            #if power_up_time > 0:
-            #    down = pygame.time.get_ticks()
-            #    if down - next > 800:
-            #        playerShip.cooldown = 0
-            #        power_up_time -= 1
-            #        next = down
-
-            #if len(all_enemies) == 0:
-            #    draw_text(width, 450, "Complete!", font, WHITE)
-            #    freeze = pygame.time.get_ticks()
-            #    if next > 0:
-            #        if freeze - next_count > 1000:
-            #            next -= 1
-            #            next_count = freeze
-            #    if next == 0:
-            #        return GameState.SECOND
-
-        #if countdown > 0:
-        #    draw_text(width, 450, "READY!", font, WHITE)
-        #    draw_text(width, 490, str(countdown), font, WHITE)
-        #    count_timer = pygame.time.get_ticks()
-        #    if count_timer - last_count > 1500:
-        #        countdown -= 1
-        #        last_count = count_timer
 
         player_sprite.draw(screen)
-        #all_lasers.draw(screen)
-        #all_enemies.draw(screen)
-        #all_enemies_lasers.draw(screen)
-        #power_up.draw(screen)
-        #obstacle.draw(screen)
 
         show_score()
         pygame.display.update()  # update our screen
@@ -879,8 +884,6 @@ def second_level():
     return GameState.QUIT
 
 
-
-
 # Creating enemies
 def create_enemies():
     for row in range(rows):
@@ -893,6 +896,7 @@ def create_enemies():
 player_sprite = pygame.sprite.Group()
 all_lasers = pygame.sprite.Group()
 all_enemies = pygame.sprite.Group()
+all_enemies_still = pygame.sprite.Group()
 all_enemies_lasers = pygame.sprite.Group()
 power_up = pygame.sprite.Group()
 obstacle = pygame.sprite.Group()
@@ -928,9 +932,13 @@ def game_start():
         global power_up_time
         global next_count
         global next
+        global move_on
         global end_timer
+        global ender_timer
         global stop
+        global stop_making
         global power_cooldown
+        global enemy_cooldown
         game_state = None
 
         time_now = pygame.time.get_ticks()
@@ -945,12 +953,12 @@ def game_start():
 
         # Countdown timer to start level
         if countdown > 0:
-            draw_text(width, 450, "READY!", font, WHITE)
-            if time_now - last_count > 1500:
+            draw_text(width, 450, "READY!", 25, WHITE)
+            if time_now - last_count > 1300:
                 countdown -= 1
                 last_count = time_now
             if countdown < 4:
-                draw_text(width, 490, str(countdown), font, WHITE)
+                draw_text(width, 490, str(countdown), 25, WHITE)
 
 
         # Everything begins to move
@@ -971,18 +979,19 @@ def game_start():
             obstacle.update()
             rock.update()
 
+
             # How long the power up lasts
             if power_up_time == 0:
                 playerShip.cooldown = 500
             if power_up_time > 0:
                 if time_now - power_cooldown > 700:
-                    playerShip.cooldown = 50
+                    playerShip.cooldown = 80
                     power_up_time -= 1
                     power_cooldown = time_now
 
             # Following rock in lasers
             if len(all_enemies) == 0 and len(rock) == 0 and stop == 0:
-                block = Rock(width + 40, 500)
+                block = Rock(width + 40, 500, 1.5)
                 rock.add(block)
             elif len(rock) == 1 and block.rect.left > 200 and stop == 0:
                 obstacle.empty()
@@ -996,19 +1005,59 @@ def game_start():
                 if block.rect.left < 203:
                     stop += 1
 
-            # Displaying complete after finishing level as well as moving to next level
+
+            # Dodging lasers
             if stop == 1:
-                if next > 0:
-                    if time_now - next_count > 1000:
-                        next -= 1
-                        next_count = time_now
-                if next in range(1, 5):
-                    draw_text(width, 450, "Complete!", font, WHITE)
-                    playerShip.speed = 0
-                    playerShip.rect.top -= 5
-                if next == 0:
-                    countdown = 6
-                    return GameState.SECOND
+                if time_now - end_timer > 30:
+                    if stop_making == 0:
+                        for row in range(1):
+                            for item in range(40):
+                                # Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
+                                enemy = Enemy_Still((10 + item * 20), (-20 + row * 50))
+                                all_enemies_still.add(enemy)
+                            stop_making = 1
+                    if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 200:
+                        attacking_enemy = random.choice(all_enemies_still.sprites())
+                        enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
+                        all_enemies_lasers.add(enemy_laser)
+                        end_timer = time_now
+                if move_on > 0:
+                    if time_now - ender_timer > 2500:
+                        move_on -= 1
+                        ender_timer = time_now
+                if move_on == 0:
+                    all_enemies_still.empty()
+                    stop += 1
+
+
+
+            # Displaying complete after finishing level as well as moving to next level
+            if stop == 2:
+                if playerShip.score == 3600:
+                    if next > 0:
+                        if time_now - next_count > 1000:
+                            next -= 1
+                            next_count = time_now
+                    if next in range(1, 5):
+                        draw_text(width, 450, "Complete!", 25, WHITE)
+                        playerShip.speed = 0
+                        playerShip.rect.top -= 5
+                    if next == 0:
+                        countdown = 6
+                        return GameState.SECOND
+                else:
+                    if next > 0:
+                        if time_now - next_count > 1000:
+                            next -= 1
+                            next_count = time_now
+                    if next in range(1, 5):
+                        screen.blit(shrug, (350,375))
+                        draw_text(width, 450, "Sorry, you don't get to pass!", 25, WHITE)
+                        playerShip.speed = 0
+                        playerShip.rect.top += 5
+                    if next == 0:
+                        return GameState.NAME
+
 
 
         # Draws all sprites onto screen
