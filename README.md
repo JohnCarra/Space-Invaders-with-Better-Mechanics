@@ -18,7 +18,7 @@ Use the mouse to click on quit in order to terminate the application.
 Trevor Long,
 Hyojun Lee,
 Loc Nguyen,
-Muktita Kim
+Muktita Kim,
 Johnathan Carranza
 
 # Future Plans
