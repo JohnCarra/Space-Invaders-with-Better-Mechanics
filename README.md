@@ -15,9 +15,9 @@ Use the mouse to click on quit in order to terminate the application.
 
 # Meet the Team
 
-Trevor Long
-Hyojun Lee
-Loc Nguyen
+Trevor Long,
+Hyojun Lee,
+Loc Nguyen,
 Muktita Kim
 Johnathan Carranza
 
