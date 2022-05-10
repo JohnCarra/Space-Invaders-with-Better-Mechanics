@@ -424,7 +424,7 @@ def create_surface_with_text(text, font_size, text_rgb):
 
 # Puts text onto screen
 def draw_text(x, y, text, font_size, text_rgb):
-    font = pygame.font.Font('freesansbold.ttf', font_size)
+    font = pygame.font.SysFont('freesansbold.ttf', font_size)
     img = font.render(text, True, text_rgb)
     text_rect = img.get_rect(center = (x / 2, y))
     screen.blit(img, text_rect)
@@ -433,7 +433,6 @@ def draw_text(x, y, text, font_size, text_rgb):
 # Game state machine, helps transition to different screens
 def main():
     game_state = GameState.TITLE
-    global time_now
 
     while True:
         if game_state == GameState.TITLE:
@@ -563,7 +562,7 @@ def title_screen(screen):
 
 # Displays your current score and health during the duration of the game
 def show_score():
-    font = pygame.font.Font('freesansbold.ttf', 25)
+    font = pygame.font.SysFont('freesansbold.ttf', 37)
     score = font.render("Score : " + str(playerShip.score), True, WHITE)
     screen.blit(score, (1, 775))
     health = font.render("Health : " + str(playerShip.health), True, WHITE)
@@ -705,7 +704,7 @@ def game_pause():
                 quit()
 
         screen.fill(BLACK)
-        draw_text(width, 400, "PAUSED", 25, WHITE)
+        draw_text(width, 400, "PAUSED", 37, WHITE)
 
         pygame.display.update()
         clock.tick(fps)
@@ -715,7 +714,7 @@ def game_pause():
 def getting_name():
     global user_text
     global highscore_file
-    font = pygame.font.Font('freesansbold.ttf', 25)
+    font = pygame.font.SysFont('freesansbold.ttf', 37)
     input_rect = pygame.Rect(365, 745, 58, 35)
 
     running = True
@@ -838,7 +837,7 @@ def second_level():
 
         screen.blit(background_two, (0,0))
 
-        draw_text(width, 400, "Buy the DLC for more content.", 25, WHITE)
+        draw_text(width, 400, "Buy the DLC for more content.", 37, WHITE)
 
         clock.tick(fps)
 
@@ -861,7 +860,7 @@ def second_level():
                 countdown -= 1
                 last_count = time_now
             if countdown < 4:
-                draw_text(width, 200, "THE GAME WILL NOW CLOSE IN " + str(countdown), 40, WHITE)
+                draw_text(width, 200, "THE GAME WILL NOW CLOSE IN " + str(countdown), 52, WHITE)
 
         if countdown == 0:
             return GameState.QUIT
@@ -953,12 +952,12 @@ def game_start():
 
         # Countdown timer to start level
         if countdown > 0:
-            draw_text(width, 450, "READY!", 25, WHITE)
+            draw_text(width, 450, "READY!", 37, WHITE)
             if time_now - last_count > 1300:
                 countdown -= 1
                 last_count = time_now
             if countdown < 4:
-                draw_text(width, 490, str(countdown), 25, WHITE)
+                draw_text(width, 490, str(countdown), 37, WHITE)
 
 
         # Everything begins to move
@@ -1039,7 +1038,7 @@ def game_start():
                             next -= 1
                             next_count = time_now
                     if next in range(1, 5):
-                        draw_text(width, 450, "Complete!", 25, WHITE)
+                        draw_text(width, 450, "Complete!", 37, WHITE)
                         playerShip.speed = 0
                         playerShip.rect.top -= 5
                     if next == 0:
@@ -1052,7 +1051,7 @@ def game_start():
                             next_count = time_now
                     if next in range(1, 5):
                         screen.blit(shrug, (350,375))
-                        draw_text(width, 450, "Sorry, you don't get to pass!", 25, WHITE)
+                        draw_text(width, 450, "Sorry, you don't get to pass!", 37, WHITE)
                         playerShip.speed = 0
                         playerShip.rect.top += 5
                     if next == 0:
