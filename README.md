@@ -1,4 +1,4 @@
-# CPSC-362-Project
+# Space-Invaders-with-Better-Mechanics
 
 Space Invaders inspired game using Python and the Pygames Library
 
