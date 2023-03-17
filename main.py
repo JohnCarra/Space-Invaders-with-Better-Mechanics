@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import pygame
 import pygame.freetype
 from pygame.sprite import Sprite
@@ -7,7 +5,6 @@ from pygame.rect import Rect
 from enum import Enum
 from pygame.sprite import RenderUpdates
 import random
-import math
 import os
 
 pygame.init()
@@ -42,7 +39,7 @@ stop_making = 0
 move_on = 10
 
 # Firerate of enemies
-enemy_cooldown = 1000 #milliseconds?
+enemy_cooldown = 1000  # milliseconds?
 last_enemy_shot = pygame.time.get_ticks()
 
 # Freeze screen before a level begins moving to give player time
@@ -94,11 +91,6 @@ user_text = ''
 
 # Highscore text file that is written to, to save highscores
 highscore_file = 'highscores.txt'
-
-
-
-
-
 
 
 # Buttons that can't be clicked
@@ -200,16 +192,16 @@ class UIElement(Sprite):
 # Player class
 class Ship(pygame.sprite.Sprite):
     """ Stores information about a ship """
+
     def __init__(self, x, y, speed, health, score, cooldown, picture):
 
         super().__init__()
 
         self.reset(x, y, speed, health, score, cooldown, picture)
 
-
     def update(self):
 
-        #cooldown = 500 # milliseconds
+        # cooldown = 500 # milliseconds
         game_state = None
 
         # Registers multiple keys
@@ -247,7 +239,7 @@ class Ship(pygame.sprite.Sprite):
         self.score = score
         self.cooldown = cooldown
 
-        #Draw the ship
+        # Draw the ship
         self.image = pygame.image.load(picture).convert_alpha()
         self.image = pygame.transform.scale(self.image, (32, 32))
         self.rect = self.image.get_rect()
@@ -285,7 +277,7 @@ class Enemy(pygame.sprite.Sprite):
 
         self.speed = speed
 
-        #Draw the enemy
+        # Draw the enemy
         self.image = pygame.image.load("Sprites/enemy.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (32, 32))
         self.rect = self.image.get_rect()
@@ -315,7 +307,7 @@ class Enemy_Still(pygame.sprite.Sprite):
 
         super().__init__()
 
-        #Draw the enemy
+        # Draw the enemy
         self.image = pygame.image.load("Sprites/enemy.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (32, 32))
         self.rect = self.image.get_rect()
@@ -426,7 +418,7 @@ def create_surface_with_text(text, font_size, text_rgb):
 def draw_text(x, y, text, font_size, text_rgb):
     font = pygame.font.SysFont('freesansbold.ttf', font_size)
     img = font.render(text, True, text_rgb)
-    text_rect = img.get_rect(center = (x / 2, y))
+    text_rect = img.get_rect(center=(x / 2, y))
     screen.blit(img, text_rect)
 
 
@@ -468,7 +460,7 @@ def game_loop(screen, buttons):
     """
     while True:
 
-        screen.blit(mainscreen, (0,0))
+        screen.blit(mainscreen, (0, 0))
 
         mouse_up = False
         for event in pygame.event.get():
@@ -489,46 +481,46 @@ def game_loop(screen, buttons):
 # Title screen
 def title_screen(screen):
 
-    title =  UIPlain(
-        center_position = (400, 50),
-        font_size = 70,
-        text_rgb = BLUE,
-        text = "Space Invaders",
+    title = UIPlain(
+        center_position=(400, 50),
+        font_size=70,
+        text_rgb=BLUE,
+        text="Space Invaders",
     )
 
-    title_2 =  UIPlain(
-        center_position = (400, 120),
-        font_size = 70,
-        text_rgb = BLUE,
-        text = "with",
+    title_2 = UIPlain(
+        center_position=(400, 120),
+        font_size=70,
+        text_rgb=BLUE,
+        text="with",
     )
 
-    title_3 =  UIPlain(
-        center_position = (400, 200),
-        font_size = 70,
-        text_rgb = BLUE,
-        text = "Cooler Mechanics",
+    title_3 = UIPlain(
+        center_position=(400, 200),
+        font_size=70,
+        text_rgb=BLUE,
+        text="Cooler Mechanics",
     )
 
-    title_4 =  UIPlain(
-        center_position = (405, 55),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "Space Invaders",
+    title_4 = UIPlain(
+        center_position=(405, 55),
+        font_size=70,
+        text_rgb=WHITE,
+        text="Space Invaders",
     )
 
-    title_5 =  UIPlain(
-        center_position = (405, 125),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "with",
+    title_5 = UIPlain(
+        center_position=(405, 125),
+        font_size=70,
+        text_rgb=WHITE,
+        text="with",
     )
 
-    title_6 =  UIPlain(
-        center_position = (405, 205),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "Cooler Mechanics",
+    title_6 = UIPlain(
+        center_position=(405, 205),
+        font_size=70,
+        text_rgb=WHITE,
+        text="Cooler Mechanics",
     )
 
     start_btn = UIElement(
@@ -555,7 +547,8 @@ def title_screen(screen):
         action=GameState.QUIT,
     )
 
-    buttons = RenderUpdates(start_btn, score_btn, quit_btn, title, title_2, title_3, title_4, title_5, title_6)
+    buttons = RenderUpdates(start_btn, score_btn, quit_btn,
+                            title, title_2, title_3, title_4, title_5, title_6)
 
     return game_loop(screen, buttons)
 
@@ -574,32 +567,32 @@ def highscore(file_name):
 
     scores = get_highscore(file_name)
 
-    title =  UIPlain(
-        center_position = (400, 200),
-        font_size = 50,
-        text_rgb = WHITE,
-        text = "Highscores",
+    title = UIPlain(
+        center_position=(400, 200),
+        font_size=50,
+        text_rgb=WHITE,
+        text="Highscores",
     )
 
-    first =  UIPlain(
-        center_position = (400, 300),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = '1st: ' + scores.get('high')[0] + ' - ' + scores.get('high')[1],
+    first = UIPlain(
+        center_position=(400, 300),
+        font_size=30,
+        text_rgb=WHITE,
+        text='1st: ' + scores.get('high')[0] + ' - ' + scores.get('high')[1],
     )
 
-    second =  UIPlain(
-        center_position = (400, 350),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = '2nd: ' + scores.get('mid')[0] + ' - ' + scores.get('mid')[1],
+    second = UIPlain(
+        center_position=(400, 350),
+        font_size=30,
+        text_rgb=WHITE,
+        text='2nd: ' + scores.get('mid')[0] + ' - ' + scores.get('mid')[1],
     )
 
-    third =  UIPlain(
-        center_position = (400, 400),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = '3rd: ' + scores.get('low')[0] + ' - ' + scores.get('low')[1],
+    third = UIPlain(
+        center_position=(400, 400),
+        font_size=30,
+        text_rgb=WHITE,
+        text='3rd: ' + scores.get('low')[0] + ' - ' + scores.get('low')[1],
     )
 
     menu_btn = UIElement(
@@ -641,7 +634,7 @@ def get_highscore(file_name):
 def write_highscore(file_name, score):
     f = open(file_name, 'w')
     to_write = ''
-    for name in ('high','mid','low','lowest'):
+    for name in ('high', 'mid', 'low', 'lowest'):
         to_write += name
         to_write += ':'
         to_write += str(score.get(name)[0])
@@ -720,7 +713,7 @@ def getting_name():
     running = True
     while running:
 
-        screen.blit(dead_background, (0,0))
+        screen.blit(dead_background, (0, 0))
 
         # Getting user input for name
         for event in pygame.event.get():   # for loop to check for a event trigger from pygames
@@ -751,18 +744,18 @@ def getting_name():
 
 # Game over screen
 def game_over():
-    game_over =  UIPlain(
-        center_position = (400, 200),
-        font_size = 70,
-        text_rgb = WHITE,
-        text = "GAME OVER",
+    game_over = UIPlain(
+        center_position=(400, 200),
+        font_size=70,
+        text_rgb=WHITE,
+        text="GAME OVER",
     )
 
     final_score = UIPlain(
-        center_position = (400, 300),
-        font_size = 30,
-        text_rgb = WHITE,
-        text = "Final Score : " + str(playerShip.score),
+        center_position=(400, 300),
+        font_size=30,
+        text_rgb=WHITE,
+        text="Final Score : " + str(playerShip.score),
     )
 
     retry_btn = UIElement(
@@ -789,7 +782,8 @@ def game_over():
         action=GameState.QUIT,
     )
 
-    playerShip.reset(width / 2, height - 100, 8, 5, 0, 500, "Sprites/player.png")
+    playerShip.reset(width / 2, height - 100, 8, 5,
+                     0, 500, "Sprites/player.png")
     player_sprite.add(playerShip)
     all_lasers.empty()
     all_enemies.empty()
@@ -803,7 +797,8 @@ def game_over():
     power_up.add(fast)
 
     for i in range(1, 20):
-        meteorite = Obstacle(random.randint(10, width - 20), random.randint(-5000, -50))
+        meteorite = Obstacle(random.randint(
+            10, width - 20), random.randint(-5000, -50))
         obstacle.add(meteorite)
 
     global stop
@@ -824,18 +819,20 @@ def game_over():
     global user_text
     user_text = ''
 
-    buttons = RenderUpdates(retry_btn, menu_btn, quit_btn, game_over, final_score)
+    buttons = RenderUpdates(retry_btn, menu_btn,
+                            quit_btn, game_over, final_score)
 
     return game_loop(screen, buttons)
 
 
 # Next Level
 def second_level():
-    playerShip.reset(width / 2, height - 100, 8, playerShip.health, playerShip.score, 500, "Sprites/sub.png")
+    playerShip.reset(width / 2, height - 100, 8, playerShip.health,
+                     playerShip.score, 500, "Sprites/sub.png")
     running = True
     while running:
 
-        screen.blit(background_two, (0,0))
+        screen.blit(background_two, (0, 0))
 
         draw_text(width, 400, "Buy the DLC for more content.", 37, WHITE)
 
@@ -851,7 +848,7 @@ def second_level():
         # Pressing escape while in a game closes window
         for event in pygame.event.get():   # for loop to check for a event trigger from pygames
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                 game_pause()
+                game_pause()
             if event.type == pygame.QUIT:
                 return GameState.QUIT
 
@@ -860,11 +857,11 @@ def second_level():
                 countdown -= 1
                 last_count = time_now
             if countdown < 4:
-                draw_text(width, 200, "THE GAME WILL NOW CLOSE IN " + str(countdown), 52, WHITE)
+                draw_text(width, 200, "THE GAME WILL NOW CLOSE IN " +
+                          str(countdown), 52, WHITE)
 
         if countdown == 0:
             return GameState.QUIT
-
 
         game_state = playerShip.update()
 
@@ -887,9 +884,10 @@ def second_level():
 def create_enemies():
     for row in range(rows):
         for item in range(cols):
-            #Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
+            # Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
             enemy = Enemy((80 + item * 80), (50 + row * 100), 4)
             all_enemies.add(enemy)
+
 
 # Initializing sprite lists
 player_sprite = pygame.sprite.Group()
@@ -914,7 +912,8 @@ power_up.add(fast)
 
 # Creating obstacles
 for i in range(1, 20):
-    meteorite = Obstacle(random.randint(10, width - 20), random.randint(-5000, -50))
+    meteorite = Obstacle(random.randint(10, width - 20),
+                         random.randint(-5000, -50))
     obstacle.add(meteorite)
 
 
@@ -924,7 +923,7 @@ def game_start():
     running = True
     while running:
 
-        screen.blit(background, (0,0))
+        screen.blit(background, (0, 0))
 
         global countdown
         global last_count
@@ -945,10 +944,9 @@ def game_start():
         # Pressing escape while in a game pauses game
         for event in pygame.event.get():   # for loop to check for a event trigger from pygames
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                 game_pause()
+                game_pause()
             if event.type == pygame.QUIT:
                 return GameState.QUIT
-
 
         # Countdown timer to start level
         if countdown > 0:
@@ -959,14 +957,14 @@ def game_start():
             if countdown < 4:
                 draw_text(width, 490, str(countdown), 37, WHITE)
 
-
         # Everything begins to move
         if countdown == 0:
 
             # Choosing which enemy will shoot at a set interval
             if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 5 and len(all_enemies) > 0:
                 attacking_enemy = random.choice(all_enemies.sprites())
-                enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
+                enemy_laser = Enemy_Laser(
+                    attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
                 all_enemies_lasers.add(enemy_laser)
 
             # Updating movement of all sprites
@@ -977,7 +975,6 @@ def game_start():
             power_up.update()
             obstacle.update()
             rock.update()
-
 
             # How long the power up lasts
             if power_up_time == 0:
@@ -998,12 +995,12 @@ def game_start():
                     for row in range(1):
                         for item in range(40):
                             # Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
-                            laser = Enemy_Laser((10 + item * 20), (2 + row * 50))
+                            laser = Enemy_Laser(
+                                (10 + item * 20), (2 + row * 50))
                             all_enemies_lasers.add(laser)
                             end_timer = time_now
                 if block.rect.left < 203:
                     stop += 1
-
 
             # Dodging lasers
             if stop == 1:
@@ -1012,12 +1009,15 @@ def game_start():
                         for row in range(1):
                             for item in range(40):
                                 # Enemy(buffer to the left + pixels apart, buffer at the top + pixels apart)
-                                enemy = Enemy_Still((10 + item * 20), (-20 + row * 50))
+                                enemy = Enemy_Still(
+                                    (10 + item * 20), (-20 + row * 50))
                                 all_enemies_still.add(enemy)
                             stop_making = 1
                     if time_now - last_enemy_shot > enemy_cooldown and len(all_enemies_lasers) < 200:
-                        attacking_enemy = random.choice(all_enemies_still.sprites())
-                        enemy_laser = Enemy_Laser(attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
+                        attacking_enemy = random.choice(
+                            all_enemies_still.sprites())
+                        enemy_laser = Enemy_Laser(
+                            attacking_enemy.rect.centerx, attacking_enemy.rect.bottom)
                         all_enemies_lasers.add(enemy_laser)
                         end_timer = time_now
                 if move_on > 0:
@@ -1027,8 +1027,6 @@ def game_start():
                 if move_on == 0:
                     all_enemies_still.empty()
                     stop += 1
-
-
 
             # Displaying complete after finishing level as well as moving to next level
             if stop == 2:
@@ -1050,14 +1048,13 @@ def game_start():
                             next -= 1
                             next_count = time_now
                     if next in range(1, 5):
-                        screen.blit(shrug, (350,375))
-                        draw_text(width, 450, "Sorry, you don't get to pass!", 37, WHITE)
+                        screen.blit(shrug, (350, 375))
+                        draw_text(
+                            width, 450, "Sorry, you don't get to pass!", 37, WHITE)
                         playerShip.speed = 0
                         playerShip.rect.top += 5
                     if next == 0:
                         return GameState.NAME
-
-
 
         # Draws all sprites onto screen
         player_sprite.draw(screen)
