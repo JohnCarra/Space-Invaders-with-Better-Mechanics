@@ -12,7 +12,8 @@ Improved graphics and sound effects
 
 Boss fights at the end of each level  
 
-![1](https://user-images.githubusercontent.com/82400181/226068501-d1bcfb0f-fad9-49ef-801c-c33f54911ab2.jpg)  
+![1](https://user-images.githubusercontent.com/82400181/229615463-865879ce-d69f-4d6a-af8f-74ebbb875f8c.png)
+
 ![2](https://user-images.githubusercontent.com/82400181/226068516-fa2a20c9-c54f-473d-8965-09f30c3de005.jpg)
 
 
