@@ -499,7 +499,7 @@ def title_screen(screen):
         center_position=(400, 200),
         font_size=70,
         text_rgb=BLUE,
-        text="Cooler Mechanics",
+        text="Better Mechanics",
     )
 
     title_4 = UIPlain(
@@ -520,7 +520,7 @@ def title_screen(screen):
         center_position=(405, 205),
         font_size=70,
         text_rgb=WHITE,
-        text="Cooler Mechanics",
+        text="Better Mechanics",
     )
 
     start_btn = UIElement(
